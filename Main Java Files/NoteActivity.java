@@ -30,7 +30,9 @@ public class NoteActivity extends AppCompatActivity {
         notesDataRepo = new NotesDataRepo(this);
         textInput = (EditText) findViewById(R.id.textInput);
 
-        // check if user wants to edit existing note
+        /**
+         * Check if user wants to edit existing note
+         */
         isEdit = getIntent().getBooleanExtra("isEdit", false);
         if (isEdit) {
             Log.i("isEdit", "true");
@@ -47,26 +49,34 @@ public class NoteActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 newNote = textInput.getText().toString();
-                Log.i("newNote length ", "is " + newNote.length());
-                if (newNote.length() == 0) {
-                    NoteActivity.this.finish();
-                }
-                if (isEdit) {
-                    // update note in database
-                    notesDataRepo.update(existingNote, newNote);
-                } else {
-                    try {
-                        // add note to database
-                        notesDataRepo.insert(newNote);
-                    } catch (Exception e) {
-                        NoteActivity.this.finish();
-                    }
-                }
-                // put the String to pass back into an Intent and close this activity
-                Log.i("Note newNote", "note is " + newNote);
+                // put the String to pass back into an Intent
                 Intent intent = new Intent();
                 intent.putExtra("newNote", newNote);
-                setResult(Activity.RESULT_OK, intent);
+
+                // check if user is creating a new note or updating an existing one
+                if (isEdit) {
+                    /**
+                     * If user removes all text from existing note, delete note from database,
+                     * otherwise update note in database
+                     */
+                    if (newNote.trim().length() == 0) {
+                        notesDataRepo.delete(existingNote);
+                        setResult(Activity.RESULT_CANCELED);
+                    } else {
+                        // update note in database
+                        notesDataRepo.update(existingNote, newNote);
+                        setResult(Activity.RESULT_OK, intent);
+                    }
+                } else {
+                    // add new note to database if it is not empty
+                    if (newNote.trim().length() > 0) {
+                        notesDataRepo.insert(newNote);
+                        setResult(Activity.RESULT_OK, intent);
+                    } else {
+                        Log.i("NoteActivity", "Note is empty, action canceled");
+                        setResult(Activity.RESULT_CANCELED);
+                    }
+                }
                 NoteActivity.this.finish();
             }
         });
@@ -77,7 +87,10 @@ public class NoteActivity extends AppCompatActivity {
         FloatingActionButton fabCancelNewNote = findViewById(R.id.fabCancelNewNote);
         fabCancelNewNote.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) { NoteActivity.this.finish(); }
+            public void onClick(View v) {
+                setResult(Activity.RESULT_CANCELED);
+                NoteActivity.this.finish();
+            }
         });
     }
 }

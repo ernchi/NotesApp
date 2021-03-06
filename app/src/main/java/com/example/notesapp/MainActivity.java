@@ -27,12 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private ArrayList<String> notesList;
     private String returnData = null;
-
-    /**
-     * TODO
-     * - do not allow for empty notes
-     * - think about implementing unique keys
-     */
+    private int indexOfEdit = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
      * @param index index of note in list
      */
     private void editNote(String note, int index) {
+        indexOfEdit = index;
         Intent intent = new Intent(getApplicationContext(), NoteActivity.class);
         intent.putExtra("isEdit", true);
         intent.putExtra("note", note);
@@ -124,23 +120,36 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Update ListView when return to MainActivity from NoteActivity
-     * @param requestCode
-     * @param resultCode
-     * @param data
+     * @param requestCode NOTE_ACTIVITY_REQUEST_CODE
+     * @param resultCode informs MainActivity whether user adds a note or canceled their action
+     * @param data intent received from NoteActivity
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        /**
+         * RESULT_OK: User added new note or edited existing new note
+         * RESULT_CANCELED: User canceled their action or removed all text from existing note
+         */
         if (requestCode == NOTE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 returnData = data.getStringExtra("newNote");
-                if (returnData.length() == 0) Log.i("Main", "note is empty");
+                // check if note is edited
+                if (indexOfEdit != -1) {
+                    // replace existing note with new note
+                    notesList.set(indexOfEdit, returnData);
+                    indexOfEdit = -1;
+                } else {
+                    // add new note into list
+                    notesList.add(returnData);
+                }
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                if (indexOfEdit != -1) {
+                    // remove edited note from list
+                    notesList.remove(indexOfEdit);
+                    indexOfEdit = -1;
+                }
             }
-        }
-
-        // check for empty string
-        if (returnData != null && !returnData.equals("")) {
-            notesList.add(returnData);
         }
         adapter.notifyDataSetChanged();
     }
