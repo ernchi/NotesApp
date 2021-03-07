@@ -1,7 +1,5 @@
 package com.example.notesapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,10 +7,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class NoteActivity extends AppCompatActivity {
-    private String NOTE_INTENT_RESULT_INT = "result";
 
     private EditText textInput;
     private String newNote;
@@ -31,10 +30,10 @@ public class NoteActivity extends AppCompatActivity {
         /**
          * Check if user wants to edit existing note
          */
-        isEdit = getIntent().getBooleanExtra("isEdit", false);
+        isEdit = getIntent().getBooleanExtra(Constants.MAIN_ACTIVITY_EDIT, false);
         if (isEdit) {
             // set the existing note in the text input field
-            existingNote = getIntent().getStringExtra("note");
+            existingNote = getIntent().getStringExtra(Constants.MAIN_ACTIVITY_NOTE);
             textInput.setText(existingNote);
         }
 
@@ -48,7 +47,7 @@ public class NoteActivity extends AppCompatActivity {
                 newNote = textInput.getText().toString();
                 // put the String to pass back into an Intent
                 Intent intent = new Intent();
-                intent.putExtra("newNote", newNote);
+                intent.putExtra(Constants.NOTE_ACTIVITY_NEW_NOTE, newNote);
 
                 // check if user is creating a new note or updating an existing one
                 if (isEdit) {
@@ -59,21 +58,20 @@ public class NoteActivity extends AppCompatActivity {
                     if (newNote.trim().length() == 0) {
                         // remove note from database
                         notesDataRepo.delete(existingNote);
-                        intent.putExtra(NOTE_INTENT_RESULT_INT, 1);
+                        intent.putExtra(Constants.NOTE_ACTIVITY_RESULT, Constants.RESULT_DELETE);
                     } else {
                         // update note in database
                         notesDataRepo.update(existingNote, newNote);
-                        intent.putExtra(NOTE_INTENT_RESULT_INT, 2);
+                        intent.putExtra(Constants.NOTE_ACTIVITY_RESULT, Constants.RESULT_UPDATE);
                     }
                     setResult(Activity.RESULT_OK, intent);
                 } else {
                     // add new note to database if it is not empty
                     if (newNote.trim().length() > 0) {
                         notesDataRepo.insert(newNote);
-                        intent.putExtra(NOTE_INTENT_RESULT_INT, 3);
+                        intent.putExtra(Constants.NOTE_ACTIVITY_RESULT, Constants.RESULT_INSERT);
                         setResult(Activity.RESULT_OK, intent);
                     } else {
-                        Log.i("NoteActivity", "Note is empty, action canceled");
                         setResult(Activity.RESULT_CANCELED);
                     }
                 }

@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), NoteActivity.class);
-                intent.putExtra("isEdit", false);
+                intent.putExtra(Constants.MAIN_ACTIVITY_EDIT, false);
                 startActivityForResult(intent, NOTE_ACTIVITY_REQUEST_CODE);
             }
         });
@@ -113,8 +113,8 @@ public class MainActivity extends AppCompatActivity {
     private void editNote(String note, int index) {
         indexOfEdit = index;
         Intent intent = new Intent(getApplicationContext(), NoteActivity.class);
-        intent.putExtra("isEdit", true);
-        intent.putExtra("note", note);
+        intent.putExtra(Constants.MAIN_ACTIVITY_EDIT, true);
+        intent.putExtra(Constants.MAIN_ACTIVITY_NOTE, note);
         startActivityForResult(intent, NOTE_ACTIVITY_REQUEST_CODE);
     }
 
@@ -127,33 +127,27 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        /**
-         * RESULT_OK: User added new note or edited existing note
-         * RESULT_CANCELED: User canceled their action
-         */
         if (requestCode == NOTE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                returnData = data.getStringExtra("newNote");
-                int resultInt = data.getIntExtra("result", 0);
+                returnData = data.getStringExtra(Constants.NOTE_ACTIVITY_NEW_NOTE);
+                int resultInt = data.getIntExtra(Constants.NOTE_ACTIVITY_RESULT, 0);
                 switch (resultInt) {
-                    case 1:
+                    case Constants.RESULT_DELETE:
                         // remove edited note from list
                         notesList.remove(indexOfEdit);
                         indexOfEdit = -1;
                         break;
-                    case 2:
+                    case Constants.RESULT_UPDATE:
                         // replace existing note with new note
                         notesList.set(indexOfEdit, returnData);
                         indexOfEdit = -1;
                         break;
-                    case 3:
+                    case Constants.RESULT_INSERT:
                         // add new note into list
                         notesList.add(returnData);
                         break;
                     default: break;
                 }
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                Log.i("MainActivity", "action canceled");
             }
         }
         adapter.notifyDataSetChanged();
