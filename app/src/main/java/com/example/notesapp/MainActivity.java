@@ -128,27 +128,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         /**
-         * RESULT_OK: User added new note or edited existing new note
-         * RESULT_CANCELED: User canceled their action or removed all text from existing note
+         * RESULT_OK: User added new note or edited existing note
+         * RESULT_CANCELED: User canceled their action
          */
         if (requestCode == NOTE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 returnData = data.getStringExtra("newNote");
-                // check if note is edited
-                if (indexOfEdit != -1) {
-                    // replace existing note with new note
-                    notesList.set(indexOfEdit, returnData);
-                    indexOfEdit = -1;
-                } else {
-                    // add new note into list
-                    notesList.add(returnData);
+                int resultInt = data.getIntExtra("result", 0);
+                switch (resultInt) {
+                    case 1:
+                        // remove edited note from list
+                        notesList.remove(indexOfEdit);
+                        indexOfEdit = -1;
+                        break;
+                    case 2:
+                        // replace existing note with new note
+                        notesList.set(indexOfEdit, returnData);
+                        indexOfEdit = -1;
+                        break;
+                    case 3:
+                        // add new note into list
+                        notesList.add(returnData);
+                        break;
+                    default: break;
                 }
             } else if (resultCode == Activity.RESULT_CANCELED) {
-                if (indexOfEdit != -1) {
-                    // remove edited note from list
-                    notesList.remove(indexOfEdit);
-                    indexOfEdit = -1;
-                }
+                Log.i("MainActivity", "action canceled");
             }
         }
         adapter.notifyDataSetChanged();
